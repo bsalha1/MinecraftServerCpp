@@ -5,18 +5,14 @@
 using json = nlohmann::json;
 using namespace Minecraft;
 
-PacketStatusOutResponse::PacketStatusOutResponse(std::string version, int protocol, int maxPlayers, int onlinePlayers, std::string description, std::string favicon)
-{
+PacketStatusOutResponse::PacketStatusOutResponse(std::string version, int protocol, int maxPlayers, int onlinePlayers, std::string description, std::string favicon) {
+
 	Version = version;
 	Protocol = protocol;
 	MaxPlayers = maxPlayers;
 	OnlinePlayers = onlinePlayers;
 	Description = description;
 	Favicon = favicon;
-}
-
-void PacketStatusOutResponse::HandlePacket(struct Packet packet) const {
-
 }
 
 struct Packet PacketStatusOutResponse::BuildPacket() const {
@@ -34,12 +30,10 @@ struct Packet PacketStatusOutResponse::BuildPacket() const {
 
 	std::string jsonDump = j.dump();
 	size_t jsonLength = jsonDump.length();
-	uint32_t packetLength = PacketEncoder::GetVarIntNumBytes(packetId) + PacketEncoder::GetVarIntNumBytes(jsonLength) + jsonLength;
 	
-	struct Packet packet(PacketEncoder::GetVarIntNumBytes(packetLength) + packetLength);
-	packet.Data = new uint8_t[packet.Length];
+	struct Packet packet(PacketEncoder::GetVarIntNumBytes(packetId) + PacketEncoder::GetVarIntNumBytes(jsonLength) + jsonLength);
+	packet.AllocateData();
 
-	PacketEncoder::WriteVarInt(packetLength, packet);
 	PacketEncoder::WriteVarInt(packetId, packet);
 	PacketEncoder::WriteString(jsonDump, packet);
 	

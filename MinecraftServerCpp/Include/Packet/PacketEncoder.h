@@ -9,6 +9,8 @@ class PacketEncoder
 {
 public:
 
+	static void IntToBigEndianBytes(uint32_t num, uint8_t bytes[sizeof(uint32_t)]);
+
 	// VarInt //
 	static void WriteVarInt(int value, uint8_t* data, size_t& offset);
 	static void WriteVarInt(int value, Packet& packet);

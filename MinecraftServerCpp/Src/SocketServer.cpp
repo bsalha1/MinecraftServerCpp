@@ -93,8 +93,6 @@ void SocketServer::StartClientThread(SOCKET clientSocket, PacketReceiveCallback 
 
         if (bytesRead > 0) {
             
-            std::cout << "Bytes received: " << bytesRead << std::endl;
-            
             struct Packet packet(bytesRead);
             packet.Data = new uint8_t[bytesRead];
             memcpy(packet.Data, recvBuffer, bytesRead);

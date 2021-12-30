@@ -1,6 +1,13 @@
 #include "Packet/PacketEncoder.h"
 #include <cstdarg>
 
+void PacketEncoder::IntToBigEndianBytes(uint32_t num, uint8_t bytes[sizeof(uint32_t)]) {
+    bytes[0] = (num >> 24) & 0xFF;
+    bytes[1] = (num >> 16) & 0xFF;
+    bytes[2] = (num >>  8) & 0xFF;
+    bytes[3] = (num >>  0) & 0xFF;
+}
+
 //---- VarInt ----//
 
 void PacketEncoder::WriteVarInt(int value, uint8_t* data, size_t& offset)

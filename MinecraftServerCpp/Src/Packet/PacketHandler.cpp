@@ -1,7 +1,12 @@
 #include "Packet/PacketHandler.h"
 #include "Packet/PacketDecoder.h"
+#include "Packet/PacketEncoder.h"
 #include "Packet/PacketStatusOutResponse.h"
+#include "Packet/PacketStatusOutPong.h"
+#include "Packet/PacketStatusInRequest.h"
+#include "Packet/PacketStatusInPing.h"
 #include <iostream>
+
 
 void LogDebug(std::string message) {
 
@@ -13,6 +18,17 @@ PacketHandler::PacketHandler(SocketServer socketServer, SOCKET clientSocket)
     Server = socketServer;
     ClientSocket = clientSocket;
     State = Minecraft::State::HANDSHAKE;
+}
+
+void PacketHandler::SendPacketLength(uint32_t length) {
+
+    Packet packetLengthPacket(PacketEncoder::GetVarIntNumBytes(length));
+    packetLengthPacket.AllocateData();
+    PacketEncoder::WriteVarInt(length, packetLengthPacket);
+    
+    Server.SendData(ClientSocket, packetLengthPacket.Data, packetLengthPacket.Length);
+    
+    packetLengthPacket.DeallocateData();
 }
 
 void PacketHandler::HandlePacket(struct Packet packet) {
@@ -60,7 +76,7 @@ void PacketHandler::HandleStatusPacket(uint32_t packetId, struct Packet packet)
 {
     switch (packetId) {
         case 0x00:
-            HandleStatusRequest(packet);
+            HandleStatusInRequest(packet);
             break;
         case 0x01:
             HandleStatusInPing(packet);
@@ -68,18 +84,28 @@ void PacketHandler::HandleStatusPacket(uint32_t packetId, struct Packet packet)
     }
 }
 
-void PacketHandler::HandleStatusRequest(struct Packet& packet) {
+void PacketHandler::HandleStatusInRequest(struct Packet& packet) {
 
     LogDebug(">>> Handling StatusInRequest");
+
+    // Read Packet
+    PacketStatusInRequest pack;
+    pack.ReadPacket(packet);
+
+    // Construct Packet
     std::string version = "1.8.8";
     int protocol = 47;
     int maxPlayers = 20; 
     int onlinePlayers = 0;
-    std::string description = "Minecraft Server CPP";
+    std::string description = "Minecraft Server in C++!";
     std::string favicon = "";
+    PacketStatusOutResponse response(version, protocol, maxPlayers, onlinePlayers, description, favicon);
+    struct Packet responsePacket = response.BuildPacket();
 
-    PacketStatusOutResponse pack(version, protocol, maxPlayers, onlinePlayers, description, favicon);
-    struct Packet responsePacket = pack.BuildPacket();
+    // Send PacketLength
+    SendPacketLength(responsePacket.Length);
+    
+    // Send Packet
     Server.SendData(ClientSocket, responsePacket.Data, responsePacket.Length);
 }
 
@@ -87,6 +113,17 @@ void PacketHandler::HandleStatusInPing(struct Packet& packet) {
     
     LogDebug(">>> Handling StatusInPing");
 
-    uint64_t payload = PacketDecoder::ReadLong(packet);
-    LogDebug("Payload: " + std::to_string(payload));
+    // Read Packet
+    PacketStatusInPing pack;
+    pack.ReadPacket(packet);
+
+    // Construct Packet
+    PacketStatusOutPong response(pack.GetPayload());
+    struct Packet responsePacket = response.BuildPacket();
+
+    // Send PacketLength
+    SendPacketLength(responsePacket.Length);
+
+    // Send Packet
+    Server.SendData(ClientSocket, responsePacket.Data, responsePacket.Length);
 }

@@ -1,4 +1,4 @@
-#include "Packet.h"
+#include "Packet/Packet.h"
 
 Packet::Packet()
 {
@@ -12,6 +12,16 @@ Packet::Packet(size_t length)
 	Length = length;
 	Offset = 0;
 	Data = NULL;
+}
+
+void Packet::AllocateData()
+{
+	Data = new uint8_t[Length];
+}
+
+void Packet::DeallocateData()
+{
+	delete[] Data;
 }
 
 void Packet::AddByte(uint8_t byte)

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "MCPacket.h"
+#include "Packet/OutPacket.h"
 #include <iostream>
 
 namespace Minecraft {
 
-	class PacketStatusOutResponse : MCPacket
+	class PacketStatusOutResponse : OutPacket
 	{
 	private:
 		std::string Version;
@@ -17,8 +17,6 @@ namespace Minecraft {
 
 	public:
 		PacketStatusOutResponse(std::string version, int protocol, int maxPlayers, int onlinePlayers, std::string description, std::string favicon);
-
-		void HandlePacket(struct Packet packet) const override;
 
 		struct Packet BuildPacket() const override;
 	};
