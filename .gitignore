@@ -1,0 +1,8 @@
+.vs/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+Debug/
+MinecraftServerCpp/Debug/
+packages/
